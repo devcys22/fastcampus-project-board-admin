@@ -1,4 +1,4 @@
-package com.fastcampus.projectboardadmin.dto;
+package com.project.projectboardadmin.dto;
 
 import com.project.projectboardadmin.dto.UserAccountDto;
 
