@@ -1,7 +1,8 @@
 package com.project.projectboardadmin.service;
 
 import com.project.projectboardadmin.domain.constant.RoleType;
-import com.fastcampus.projectboardadmin.dto.ArticleDto;
+
+import com.project.projectboardadmin.dto.ArticleDto;
 import com.project.projectboardadmin.dto.UserAccountDto;
 import com.project.projectboardadmin.dto.properties.ProjectProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @DisplayName("비즈니스 로직 - 게시글 관리")
 class ArticleManagementServiceTest {
 
-    //    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
+    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
     @DisplayName("실제 API 호출 테스트")
     @SpringBootTest
     @Nested
