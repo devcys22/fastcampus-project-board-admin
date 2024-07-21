@@ -8,6 +8,7 @@ import com.project.projectboardadmin.dto.response.ArticleCommentClientResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.projectboardadmin.domain.constant.RoleType;
 import com.project.projectboardadmin.dto.UserAccountDto;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @DisplayName("비즈니스 로직 - 댓글 관리")
 class ArticleCommentManagementServiceTest {
 
-    //    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
+    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
     @DisplayName("실제 API 호출 테스트")
     @SpringBootTest
     @Nested
@@ -53,10 +54,10 @@ class ArticleCommentManagementServiceTest {
             // Given
 
             // When
-            List<ArticleCommentDto> result = sut.getArticleComments();
+            ArticleCommentDto result = sut.getArticleComment(1L);
 
             // Then
-            System.out.println(result.stream().findFirst());
+            System.out.println(result);
             assertThat(result).isNotNull();
         }
     }
@@ -119,7 +120,7 @@ class ArticleCommentManagementServiceTest {
             Long articleCommentId = 1L;
             ArticleCommentDto expectedComment = createArticleCommentDto("댓글");
             server
-                    .expect(requestTo(projectProperties.board().url() + "/api/articleComments/" + articleCommentId))
+                    .expect(requestTo(projectProperties.board().url() + "/api/articleComments/" + articleCommentId+"?projection=withUserAccount"))
                     .andRespond(withSuccess(
                             mapper.writeValueAsString(expectedComment),
                             MediaType.APPLICATION_JSON
