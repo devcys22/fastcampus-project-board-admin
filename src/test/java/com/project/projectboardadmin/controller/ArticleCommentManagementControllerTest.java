@@ -1,10 +1,11 @@
 package com.project.projectboardadmin.controller;
 
 import com.project.projectboardadmin.config.SecurityConfig;
+import com.project.projectboardadmin.config.TestSecurityConfig;
 import com.project.projectboardadmin.domain.constant.RoleType;
-import com.fastcampus.projectboardadmin.dto.ArticleDto;
+import com.project.projectboardadmin.dto.ArticleCommentDto;
 import com.project.projectboardadmin.dto.UserAccountDto;
-import com.project.projectboardadmin.service.ArticleManagementService;
+import com.project.projectboardadmin.service.ArticleCommentManagementService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -24,79 +26,81 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@DisplayName("View 컨트롤러 - 댓글 관리")
-@Import(SecurityConfig.class)
+@DisplayName("컨트롤러 - 댓글 관리")
+@Import(TestSecurityConfig.class)
 @WebMvcTest(ArticleCommentManagementController.class)
 class ArticleCommentManagementControllerTest {
 
     private final MockMvc mvc;
 
-    @MockBean private ArticleManagementService articleManagementService;
+    @MockBean private ArticleCommentManagementService articleCommentManagementService;
 
     public ArticleCommentManagementControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
     }
 
+    @WithMockUser(username = "tester", roles = "USER")
     @DisplayName("[view][GET] 댓글 관리 페이지 - 정상 호출")
     @Test
     void givenNothing_whenRequestingArticleCommentManagementView_thenReturnsArticleCommentManagementView() throws Exception {
         // Given
-        given(articleManagementService.getArticles()).willReturn(List.of());
+        given(articleCommentManagementService.getArticleComments()).willReturn(List.of());
 
         // When & Then
         mvc.perform(get("/management/article-comments"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(view().name("management/articles"))
-                .andExpect(model().attribute("articles", List.of()));
-        then(articleManagementService).should().getArticles();
+                .andExpect(view().name("management/article-comments"))
+                .andExpect(model().attribute("comments", List.of()));
+        then(articleCommentManagementService).should().getArticleComments();
     }
 
-    @DisplayName("[data][GET] 게시글 1개 - 정상 호출")
+    @WithMockUser(username = "tester", roles = "USER")
+    @DisplayName("[data][GET] 댓글 1개 - 정상 호출")
     @Test
-    void givenArticleId_whenRequestingArticle_thenReturnsArticle() throws Exception {
+    void givenCommentId_whenRequestingArticleComment_thenReturnsArticleComment() throws Exception {
         // Given
-        Long articleId = 1L;
-        ArticleDto articleDto = createArticleDto("title", "content");
-        given(articleManagementService.getArticle(articleId)).willReturn(articleDto);
+        Long articleCommentId = 1L;
+        ArticleCommentDto articleCommentDto = createArticleCommentDto("comment");
+        given(articleCommentManagementService.getArticleComment(articleCommentId)).willReturn(articleCommentDto);
 
         // When & Then
-        mvc.perform(get("/management/articles/" + articleId))
+        mvc.perform(get("/management/article-comments/" + articleCommentId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(articleId))
-                .andExpect(jsonPath("$.title").value(articleDto.title()))
-                .andExpect(jsonPath("$.content").value(articleDto.content()))
-                .andExpect(jsonPath("$.userAccount.nickname").value(articleDto.userAccount().nickname()));
-        then(articleManagementService).should().getArticle(articleId);
+                .andExpect(jsonPath("$.id").value(articleCommentId))
+                .andExpect(jsonPath("$.content").value(articleCommentDto.content()))
+                .andExpect(jsonPath("$.userAccount.nickname").value(articleCommentDto.userAccount().nickname()));
+        then(articleCommentManagementService).should().getArticleComment(articleCommentId);
     }
 
-    @DisplayName("[view][GET] 게시글 삭제 - 정상 호출")
+    @WithMockUser(username = "tester", roles = "MANAGER")
+    @DisplayName("[view][POST] 댓글 삭제 - 정상 호출")
     @Test
-    void givenArticleId_whenRequestingDeletion_thenRedirectsToArticleManagementView() throws Exception {
+    void givenCommentId_whenRequestingDeletion_thenRedirectsToArticleCommentManagementView() throws Exception {
         // Given
-        Long articleId = 1L;
-        willDoNothing().given(articleManagementService).deleteArticle(articleId);
+        Long articleCommentId = 1L;
+        willDoNothing().given(articleCommentManagementService).deleteArticleComment(articleCommentId);
 
         // When & Then
         mvc.perform(
-                        post("/management/articles/" + articleId)
+                        post("/management/article-comments/" + articleCommentId)
                                 .with(csrf())
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/management/articles"))
-                .andExpect(redirectedUrl("/management/articles"));
-        then(articleManagementService).should().deleteArticle(articleId);
+                .andExpect(view().name("redirect:/management/article-comments"))
+                .andExpect(redirectedUrl("/management/article-comments"));
+        then(articleCommentManagementService).should().deleteArticleComment(articleCommentId);
     }
 
 
-    private ArticleDto createArticleDto(String title, String content) {
-        return ArticleDto.of(
+    private ArticleCommentDto createArticleCommentDto(String content) {
+        return ArticleCommentDto.of(
+                1L,
                 1L,
                 createUserAccountDto(),
-                title,
-                content,
                 null,
+                content,
                 LocalDateTime.now(),
                 "Uno",
                 LocalDateTime.now(),
@@ -107,8 +111,6 @@ class ArticleCommentManagementControllerTest {
     private UserAccountDto createUserAccountDto() {
         return UserAccountDto.of(
                 "unoTest",
-                "pw",
-                Set.of(RoleType.ADMIN),
                 "uno-test@email.com",
                 "uno-test",
                 "test memo"
