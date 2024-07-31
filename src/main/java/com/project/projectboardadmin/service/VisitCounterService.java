@@ -27,7 +27,7 @@ public class VisitCounterService {
             sum = meterRegistry.get("http.server.requests")
                     .timers()
                     .stream()
-                    .filter(timer -> "/".contains(timer.getId().getTag("uri")))
+                    .filter(timer -> viewEndpoints.contains(timer.getId().getTag("uri")))
                     .mapToLong(Timer::count)
                     .sum();
         }catch(MeterNotFoundException e){
